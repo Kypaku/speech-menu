@@ -4,19 +4,23 @@
             <button v-if="!recording" @click="record()">
                 &#127908;
             </button>
-            <button v-else @click="stop()">
+            <button v-else @click ="stop()">
                 <span class="stop"></span>
             </button>
         </div>
-        <audio
-            controls
-            autoplay
-            :src="speech"></audio>
+        <div  v-for="speech,i in speeches" :key="speech">
+            <div class="ml-5">{{ i + 1 }} chunk</div>
+            <div class="ml-5" :id="`amplitude${i + 1}`"></div>
+            <audio
+                controls
+                autoplay
+                :src="speech"></audio>
+        </div>
     </div>
 </template>
 
 <script lang='ts'>
-    import { defineComponent } from 'vue'
+    import { defineComponent, toRaw } from 'vue'
     import smalltalk from 'smalltalk'
 
     export default defineComponent({
@@ -28,42 +32,81 @@
                 constraints: { audio: false },
                 mediaRecorder: null as any,
                 chunks: [] as any,
+                speeches: [] as any,
                 speech: null as any,
-                recording: false
+                recording: false,
             }
         },
         computed: {
 
         },
         methods: {
-            record() {
-                if (!this.mediaRecorder) {
-                    alert("You have a problem with your device")
+            stream() {
+                if (this.recording) {
+                    this.mediaRecorder.start()
+                    this.mediaRecorder.ondataavailable = this.ondataAvailable
+                    setTimeout(() => this.mediaRecorder.stop(), 2500)
                 }
-                smalltalk.confirm('Attention', 'Allow microphone access on this device?')
-                    .then(() => {
-                        this.mediaRecorder.start()
-                        this.mediaRecorder.onstop = this.onStop
-                        this.mediaRecorder.ondataavailable = this.ondataAvailable
-                        this.speech = null
-                        this.recording = true
-                    })
-                    .catch(() => {
-                        console.warn('Access to the microphone on this device is denied')
-                    })
+            },
+            async record() {
+                try {
+                    if (!this.mediaRecorder) {
+                        alert("You have a problem with your device")
+                    }
+                    await smalltalk.confirm('Attention', 'Allow microphone access on this device?')
+                    this.speeches = []
+                    this.recording = true
+                    setInterval(this.stream, 2530)
+                } catch (err) {
+                    console.warn('Access to the microphone on this device is denied')
+                }
             },
             stop() {
-                this.mediaRecorder.stop()
                 this.recording = false
-            },
-            async onStop() {
-                const blob = new Blob(this.chunks, { type: "audio/webm" })
                 this.chunks = []
-                this.speech = URL.createObjectURL(blob)
             },
-            ondataAvailable(e: any) {
-                this.chunks.push(e.data)
-            },
+            async ondataAvailable(e: any) {
+                // Calculate Root Mean Squared of block (Linear)
+                function calcRmsLin(buffer) {
+                    let rms = 0
+                    for (let bufferIndex = 0; bufferIndex < buffer.length; bufferIndex++) {
+                        rms += buffer[bufferIndex] * buffer[bufferIndex]
+                    }
+                    rms /= buffer.length
+                    rms = Math.sqrt(rms)
+                    return rms
+                }
+                // Calculate Root Mean Squared of block Decibels
+                function calcRmsDb(buffer) {
+                    return 20 * Math.log10(calcRmsLin(buffer))
+                }
+                if (this.recording) {
+                    this.chunks.push(e.data)
+                    if (this.chunks.length === 49) this.chunks = this.chunks.slice(1)
+                    console.log(toRaw(this.chunks))
+                    const blob = new Blob(this.chunks, { type: "audio/webm" })
+                    this.speech = URL.createObjectURL(blob)
+                    this.speeches.push(this.speech)
+                    if (this.speeches.length === 49) this.speeches = this.speeches.slice(1)
+                    const reader = new FileReader()
+                    let arrayBuffer : string | ArrayBuffer
+                    const audioCtx = new AudioContext()
+                    reader.onload = (e) => {
+                        arrayBuffer = reader.result
+                        let dBAmplitude : number
+                        const chunksLength = this.chunks.length
+                        audioCtx.decodeAudioData(arrayBuffer as ArrayBuffer, function(buffer) {
+                            const float32Array = buffer.getChannelData(0)
+                            dBAmplitude = calcRmsDb(float32Array)
+                            const condCreateChuck = document.getElementById(`amplitude${chunksLength}`)
+                            if (condCreateChuck) {
+                                condCreateChuck.innerHTML = `${dBAmplitude} Decibel`
+                            }
+                        })
+                    }
+                    reader.readAsArrayBuffer(e.data)
+                }
+            }
         },
         mounted() {
             if (navigator.mediaDevices.getUserMedia) {
