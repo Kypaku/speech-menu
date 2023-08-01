@@ -11,9 +11,9 @@
         <div  v-for="speech,i in speeches" :key="speech">
             <div class="ml-5">{{ i + 1 }} chunk</div>
             <div class="ml-5" :id="`amplitude${i + 1}`"></div>
+            <!-- autoplay -->
             <audio
                 controls
-                autoplay
                 :src="speech"></audio>
         </div>
     </div>
