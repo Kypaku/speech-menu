@@ -13,8 +13,11 @@
   },
   "main": "background.js",
   "dependencies": {
+    "audio-buffer-utils": "^5.1.2",
+    "audiobuffer-to-blob": "^1.0.2",
     "autoprefixer": "^9.8.8",
     "core-js": "^3.6.5",
+    "openai": "^3.3.0",
     "postcss": "^7.0.39",
     "smalltalk": "^4.1.1",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.2.17",
