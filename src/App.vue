@@ -1,6 +1,6 @@
 <template>
     <div id="audio">
-        <input type="text" class="mx-5 my-5" :placeholder="getDecibel" v-model="decibel" @input="onInput()" />
+        <input ref="input" type="text" class="mx-5 my-5" :placeholder="getDecibel" v-model="decibel" @input="onInput()" />
         <div class="mx-5 mb-5">Last merge chunks:</div>
         <audio
             controls
@@ -30,7 +30,9 @@
 <script lang='ts'>
     import { defineComponent, toRaw } from 'vue'
     import smalltalk from 'smalltalk'
-  
+    import { transcribe } from './api/openai'
+    import { calcRmsDb } from './helpers/index'
+
     export default defineComponent({
         components: {
 
@@ -50,7 +52,7 @@
         },
         computed: {
             getDecibel() {
-                return localStorage.getItem('decibel') ? localStorage.getItem('decibel') + " DECIBEL" : "Input DECIBEL here"
+                return localStorage.getItem('decibel') ? "" : "20 DECIBEL"
             }
         },
         methods: {
@@ -84,41 +86,6 @@
                 this.chunks = []
             },
             async ondataAvailable(e: any) {
-                // transcribe speech to text
-                async function transcribe(formData: FormData) {
-                    const requestOptions = {
-                        method: "POST",
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem('key')}`,
-                        },
-                        body: formData,
-                    }
-                    const response = await fetch(
-                        "https://api.openai.com/v1/audio/transcriptions",
-                        requestOptions
-                    ).then(response => {
-                        if (response.ok) {
-                            return response?.json?.()
-                        } else {
-                            Promise.reject(response)
-                        }
-                    })
-                    return await response.text
-                }
-                // Calculate Root Mean Squared of block (Linear)
-                function calcRmsLin(buffer) {
-                    let rms = 0
-                    for (let bufferIndex = 0; bufferIndex < buffer.length; bufferIndex++) {
-                        rms += buffer[bufferIndex] * buffer[bufferIndex]
-                    }
-                    rms /= buffer.length
-                    rms = Math.sqrt(rms)
-                    return rms
-                }
-                // Calculate Root Mean Squared of block Decibels
-                function calcRmsDb(buffer) {
-                    return 20 * Math.log10(calcRmsLin(buffer))
-                }
                 if (this.recording) {
                     this.chunks.push(e.data)
                     if (this.chunks.length === 49) this.chunks = this.chunks.slice(1)
@@ -188,6 +155,8 @@
             }
         },
         mounted() {
+            this.decibel = localStorage.getItem('decibel')
+            this.$refs.input.focus()
             if (navigator.mediaDevices.getUserMedia) {
                 this.constraints = { audio: true }
                 const onSuccess = (stream: any) => {
