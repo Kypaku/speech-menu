@@ -10,5 +10,5 @@ export function calcRmsLin(buffer) {
 }
 // Calculate Root Mean Squared of block Decibels
 export function calcRmsDb(buffer) {
-    return 20 * Math.log10(calcRmsLin(buffer))
+    return 100 + 20 * Math.log10(calcRmsLin(buffer))
 }
