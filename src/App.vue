@@ -32,6 +32,7 @@
     import smalltalk from 'smalltalk'
     import { transcribe } from './api/openai'
     import { calcRmsDb } from './helpers/index'
+    import { api } from "./api/fileApi"
 
     export default defineComponent({
         components: {
@@ -155,6 +156,18 @@
             }
         },
         mounted() {
+            // api.add({
+            //     id: `${+new Date() + '_' + Math.random().toString(36).substr(2, 9)}`,
+            //     condition: [{ id: "555", textIncludes: "строка", f: null }],
+            //     action: null
+            // })
+            // api.update({
+            //     id: "1705689268872_prtaxyw6q",
+            //     condition: [{ id: "7555", textIncludes: "строка которая должна содержаться в расшифрованном тексте", f: null }],
+            //     action: null
+            // })
+            // api.delete("1705689268872_prtaxyw6q")
+            console.log(api.get())
             this.decibel = localStorage.getItem('decibel')
             this.$refs.input.focus()
             if (navigator.mediaDevices.getUserMedia) {
