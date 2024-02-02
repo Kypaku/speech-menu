@@ -1,10 +1,13 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import './assets/tailwind.css'
+import store from './store'
 
 import shell from 'electron'
 
-createApp(App).mount('#app')
+createApp(App).use(store).mount('#app')
+
+store.dispatch('getRules')
 
 document.addEventListener("keydown", function (e) {
     if (e.which === 123) {

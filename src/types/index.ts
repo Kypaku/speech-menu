@@ -10,6 +10,7 @@ export interface ICondition {
 }
 
 export interface IRule {
+    name: string,
     id: string,
     condition: ICondition[] // массив условий
     action: IFunction // действие

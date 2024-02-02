@@ -1,5 +1,5 @@
 import * as fs from 'fs'
-import { IRule } from "src/data/types"
+import { IRule } from "@/types"
 
 const filePath = 'src/data/data.json'
 
@@ -21,7 +21,11 @@ export function updateFileJSON(filePath: string, f: (data: any) => any): any {
 
 export const api = {
     get(): IRule[] {
-        return readFileJSON(filePath)
+        if ((readFileJSON(filePath))) {
+            return readFileJSON(filePath)
+        } else {
+            return []
+        }
     },
     add(data: IRule): void {
         const fileData = readFileJSON(filePath)
@@ -35,26 +39,18 @@ export const api = {
     update(data: IRule): void {
         function updateIRule() {
             const fileData = readFileJSON(filePath)
-            const findedIndex = fileData.findIndex(el => el.id === data.id)
-            if (findedIndex >= 0) {
-                fileData.splice(findedIndex, 1, data)
-                return fileData
-            } else {
-                return fileData
-            }
+            const findedIndex = fileData.findIndex((rule: IRule) => rule.id === data.id)
+            fileData.splice(findedIndex, 1, data)
+            return fileData
         }
         updateFileJSON(filePath, updateIRule)
     },
     delete(id: string): void {
         function deleteIRule() {
             const fileData = readFileJSON(filePath)
-            const findedIndex = fileData.findIndex(el => el.id === id)
-            if (findedIndex >= 0) {
-                fileData.splice(findedIndex, 1)
-                return fileData
-            } else {
-                return fileData
-            }
+            const findedIndex = fileData.findIndex((rule: IRule) => rule.id === id)
+            fileData.splice(findedIndex, 1)
+            return fileData
         }
         updateFileJSON(filePath, deleteIRule)
     }

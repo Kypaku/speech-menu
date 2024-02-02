@@ -29,6 +29,7 @@
 
 <script lang='ts'>
     import { defineComponent, toRaw } from 'vue'
+    import { mapGetters, mapActions } from 'vuex'
     import smalltalk from 'smalltalk'
     import { transcribe } from './api/openai'
     import { calcRmsDb } from './helpers/index'
@@ -52,11 +53,13 @@
             }
         },
         computed: {
+            ...mapGetters(['rules']),
             getDecibel() {
                 return localStorage.getItem('decibel') ? "" : "20 DECIBEL"
             }
         },
         methods: {
+            ...mapActions(['addRule', 'deleteRule', 'updateRule']),
             stream() {
                 if (this.recording) {
                     this.mediaRecorder.start()
@@ -156,18 +159,10 @@
             }
         },
         mounted() {
-            // api.add({
-            //     id: `${+new Date() + '_' + Math.random().toString(36).substr(2, 9)}`,
-            //     condition: [{ id: "555", textIncludes: "строка", f: null }],
-            //     action: null
-            // })
-            // api.update({
-            //     id: "1705689268872_prtaxyw6q",
-            //     condition: [{ id: "7555", textIncludes: "строка которая должна содержаться в расшифрованном тексте", f: null }],
-            //     action: null
-            // })
-            // api.delete("1705689268872_prtaxyw6q")
-            console.log(api.get())
+            // this.deleteRule("1706875602776_ht9je5m8j")
+            // this.addRule({ name: "555555555555555", condition: [], action: null })
+            // this.updateRule({ id: "1706875585991_gpp4x3rkt", name: "1111111111111111111111", condition: [], action: null })
+            // console.log(this.rules)
             this.decibel = localStorage.getItem('decibel')
             this.$refs.input.focus()
             if (navigator.mediaDevices.getUserMedia) {
