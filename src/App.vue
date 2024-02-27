@@ -1,5 +1,6 @@
 <template>
     <div id="audio">
+        <Rules/>
         <input ref="input" type="text" class="mx-5 my-5" :placeholder="getDecibel" v-model="decibel" @input="onInput()" />
         <div class="mx-5 mb-5">Last merge chunks:</div>
         <audio
@@ -34,10 +35,11 @@
     import { transcribe } from './api/openai'
     import { calcRmsDb } from './helpers/index'
     import { api } from "./api/fileApi"
+    import Rules from "./components/rule/Rules.vue"
 
     export default defineComponent({
         components: {
-
+            Rules
         },
         data() {
             return {
@@ -159,10 +161,7 @@
             }
         },
         mounted() {
-            // this.deleteRule("1706875602776_ht9je5m8j")
-            // this.addRule({ name: "555555555555555", condition: [], action: null })
-            // this.updateRule({ id: "1706875585991_gpp4x3rkt", name: "1111111111111111111111", condition: [], action: null })
-            // console.log(this.rules)
+            // this.updateRule({ id: "1706968336527_mbmd7os6p", name: "RULE 4 EXAMPLE 4", condition: [], action: null })
             this.decibel = localStorage.getItem('decibel')
             this.$refs.input.focus()
             if (navigator.mediaDevices.getUserMedia) {
